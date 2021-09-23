@@ -1,31 +1,56 @@
-# Tanzu Kubernetes Grid Integrated (TKGI) / Set Windows System Audit Policy
+> Note: Use at your own risk, this bosh release is not officially supported by VMware Tanzu. 
 
-# Checking if Yugam can edit
+# Set Windows System Audit Policy on Bosh deployed Windows 2019 Server
+
 ## What does this do?
 
-For windows-workers in PKS and TKGI clusters, this set windows system audit policy.
+For windows 2019 server nodes deployed by Bosh, the job in this release sets windows system audit policy.
 
-Running `Disable-NetAdapterChecksumOffload -Name "Ethernet0" -TcpIPv4 -NoRestart` seems to fix this behavior.
+The template `pre-start.ps1.erb` executes a auditpol command to modify system audit policy on the host. 
 
-## How do I install it?
+## How do I install it?    
 
-1. Open a shell prompt on a BOSH CLI with access to your TKGI bosh director, such as Ops Manager.
-2. Export your BOSH credentials to the enviornment.  These can be accessed via the Ops Manager GUI -> BOSH Director Tile -> Credentials Tab -> Bosh Commandline Credentials.    
-
-e.g.
+- Access Bosh
 ```
 export BOSH_CLIENT=ops_manager BOSH_CLIENT_SECRET=fakesecret BOSH_CA_CERT=/var/tempest/workspaces/default/root_ca_certificate  BOSH_ENVIRONMENT=10.0.0.10
 ```
-3. Copy or clone this repository onto this BOSH CLI workstation and create+upload the BOSH release to the director
+- Copy or clone this repository onto your BOSH CLI workstation and create+upload the BOSH release to the director
 
 ```
-git clone https://github.com/ceesco53/tkgi-windows-disable-chksum-offload && cd tkgi-windows-disable-chksum-offload
+git clone https://github.com/dbmathis/set-windows-system-audit-policy && cd set-windows-system-audit-policy
+```
+> Note - Following bosh commands must be executed from within set-windows-system-audit-policy directory
+```
 bosh create-release --force
-bosh upload-release ./dev_releases/tkgi-windows-disable-chksum-offload/tkgi-windows-disable-chksum-offload-0+dev.1.yml 
 
+bosh upload-release ./dev_releases/set-windows-system-audit-policy/set-windows-system-audit-policy-0+dev.1.yml 
 ```
-4. Configure the addon from this repo
+
+-  Configure the Bosh addon from this repo
 ```
-bosh -n update-config --name=tkgi-windows-disable-chksum-offload --type=runtime ./addon.yml
+bosh update-config --name=set-windows-system-audit-policy --type=runtime ./bosh-addon.yml
 ```
-5. Update your TKGI clusters via the Ops Manager "Apply Pending Changes" button with the "Upgrade All Clusters" errand.   You may also use the `tkgi upgrade-cluster` command to apply this addon to any individual cluster.
+
+- Bosh deploy. In case of TKGI, upgrade the cluster running the windows server nodes using the TKGI cli `tkgi upgrade-cluster <cluster-name>`
+
+## How do I remove the bosh addon?
+
+- Get the bosh config ID
+```
+bosh configs | grep set-
+```
+Example:
+> Command >  bosh configs | grep 'set-windows-system-audit-policy' | awk -F"*" '{print $1}'  
+> Output > 42
+- Delete the bosh config
+```
+bosh delete-config <ID>
+```
+- Recreate the Bosh deployment
+- Delete the Bosh release
+```
+bosh delete-release set-windows-system-audit-policy/0+dev.1
+```
+## Credits
+- [John Nelson](https://github.com/ceesco53)
+- [Bosh.io - Create a release](https://bosh.io/docs/create-release/) 
