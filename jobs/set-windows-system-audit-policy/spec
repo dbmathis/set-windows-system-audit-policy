@@ -1,0 +1,9 @@
+---
+name: set-windows-system-audit-policy
+
+templates:
+  bin/pre-start.ps1.erb: bin/pre-start.ps1
+
+packages: []
+
+properties: {}

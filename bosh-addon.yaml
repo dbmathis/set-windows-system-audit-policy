@@ -1,0 +1,15 @@
+---
+name: set-windows-system-audit-policy 
+
+releases:
+- name: set-windows-system-audit-policy
+  version: 0+dev.1
+
+addons:
+  - name: set-windows-system-audit-policy
+    jobs:
+    - name: set-windows-system-audit-policy
+      release: set-windows-system-audit-policy
+    include: 
+      stemcell:
+      - os: windows2019
